@@ -1,11 +1,12 @@
 <?php
 session_start();
-include 'includes/header.php';
 
 if (!isset($_SESSION['current_reading'])) {
     header('Location: index.php');
     exit;
 }
+
+include 'includes/header.php';
 
 $reading = $_SESSION['current_reading'];
 $cards = $reading['cards'];
