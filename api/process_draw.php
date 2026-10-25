@@ -3,9 +3,16 @@ session_start();
 require_once 'config/db.php';
 
 $selected_ids_str = $_POST['selected_card_ids'] ?? '';
-$spread = $_SESSION['spread'] ?? 'daily';
-$category = $_SESSION['category'] ?? 'general';
-$user_question = $_SESSION['user_question'] ?? 'Apa pesan untukku saat ini?';
+
+// Prioritaskan data dari POST (hidden input draw.php), lalu session, lalu default
+$spread = $_POST['spread'] ?? $_SESSION['spread'] ?? 'daily';
+$category = $_POST['category'] ?? $_SESSION['category'] ?? 'general';
+$user_question = trim($_POST['user_question'] ?? $_SESSION['user_question'] ?? 'Apa pesan untukku saat ini?');
+
+// Perbarui session sebagai cadangan
+$_SESSION['spread'] = $spread;
+$_SESSION['category'] = $category;
+$_SESSION['user_question'] = $user_question;
 
 if (empty($selected_ids_str)) {
     header('Location: draw.php');
