@@ -3,10 +3,12 @@ session_start();
 require_once 'config/db.php';
 include 'includes/header.php';
 
-$spread = $_POST['spread'] ?? $_SESSION['spread'] ?? 'daily';
-$category = $_POST['category'] ?? $_SESSION['category'] ?? 'general';
-$user_question = trim($_POST['user_question'] ?? $_SESSION['user_question'] ?? 'Apa pesan untukku saat ini?');
+// Tangkap data spread, category, dan question dari POST/GET/Session agar aman di Vercel
+$spread = $_REQUEST['spread'] ?? $_SESSION['spread'] ?? 'daily';
+$category = $_REQUEST['category'] ?? $_SESSION['category'] ?? 'general';
+$user_question = trim($_REQUEST['user_question'] ?? $_REQUEST['q'] ?? $_SESSION['user_question'] ?? 'Apa pesan untukku saat ini?');
 
+// Simpan kembali ke session sebagai cadangan
 $_SESSION['spread'] = $spread;
 $_SESSION['category'] = $category;
 $_SESSION['user_question'] = $user_question;
@@ -60,7 +62,7 @@ foreach ($raw_cards as $row) {
     <p class="text-xs text-white/70 font-semibold mt-2">Salurkan energi dan fokuskan pikiran kamu pada pertanyaan</p>
 </div>
 
-<div class="text-center my-6">
+<div class="text-center my-6 px-4">
     <span class="bg-pastel-bunny text-pastel-dark font-bold text-xs px-4 py-1.5 rounded-full inline-block mb-2 border border-pastel-lilac">
         Langkah 4 dari 4 🔮
     </span>
@@ -71,8 +73,12 @@ foreach ($raw_cards as $row) {
     </p>
 </div>
 
-<form id="tarot-form" action="process_draw.php" method="POST" class="max-w-6xl mx-auto my-6">
+<!-- Form diarahkan ke process_draw.php dengan membawa hidden input lengkap agar data pertanyaan tidak hilang -->
+<form id="tarot-form" action="process_draw.php" method="POST" class="max-w-6xl mx-auto my-6 px-4">
     <input type="hidden" name="selected_card_ids" id="selected_card_ids" value="">
+    <input type="hidden" name="spread" value="<?= htmlspecialchars($spread); ?>">
+    <input type="hidden" name="category" value="<?= htmlspecialchars($category); ?>">
+    <input type="hidden" name="user_question" value="<?= htmlspecialchars($user_question); ?>">
 
     <div class="bg-white/60 backdrop-blur-md p-6 rounded-3xl cute-card-border shadow-md min-h-[380px] theme-card">
         <div class="flex flex-wrap justify-center gap-2 md:gap-3 max-h-[480px] overflow-y-auto p-2">
