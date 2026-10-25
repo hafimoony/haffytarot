@@ -2,9 +2,11 @@
 session_start();
 include 'includes/header.php';
 
-$category = $_POST['category'] ?? $_SESSION['category'] ?? 'general';
-$spread = $_POST['spread'] ?? $_SESSION['spread'] ?? 'daily';
+// Tangkap dari POST atau GET atau Session (Prioritaskan GET/POST agar dinamis sesuai input user)
+$category = $_REQUEST['category'] ?? $_SESSION['category'] ?? 'general';
+$spread = $_REQUEST['spread'] ?? $_SESSION['spread'] ?? 'daily';
 
+// Simpan juga ke session sebagai cadangan lokal
 $_SESSION['category'] = $category;
 $_SESSION['spread'] = $spread;
 
@@ -38,18 +40,19 @@ $category_info = [
 $info = $category_info[$category] ?? $category_info['general'];
 ?>
 
-<div class="max-w-xl mx-auto my-8 text-center">
+<div class="max-w-xl mx-auto my-8 text-center px-4">
     <span class="bg-pastel-bunny text-pastel-dark font-bold text-xs px-4 py-1.5 rounded-full inline-block mb-3 border border-pastel-lilac">
         Langkah 3 dari 4 ✨
     </span>
     <h1 class="text-2xl font-bold mb-2 font-heading">Ketik Pertanyaan Kamu 💕</h1>
     
-    <div class="flex justify-center gap-2 mb-6 text-xs font-bold">
+    <div class="flex justify-center gap-2 mb-6 text-xs font-bold flex-wrap">
         <span class="bg-pastel-lemon text-pastel-dark px-3 py-1 rounded-full"><?= $info['title']; ?></span>
         <span class="bg-pastel-mint text-pastel-dark px-3 py-1 rounded-full"><?= $spread_names[$spread] ?? 'Tebaran Kartu'; ?></span>
     </div>
 
-    <form action="draw.php" method="POST" class="bg-white/90 p-6 rounded-3xl cute-card-border shadow-md text-left theme-card">
+    <!-- Ubah method menjadi GET agar data terbawa aman di URL parameter Vercel -->
+    <form action="draw.php" method="GET" class="bg-white/90 p-6 rounded-3xl cute-card-border shadow-md text-left theme-card">
         <input type="hidden" name="category" value="<?= htmlspecialchars($category); ?>">
         <input type="hidden" name="spread" value="<?= htmlspecialchars($spread); ?>">
         
@@ -57,11 +60,11 @@ $info = $category_info[$category] ?? $category_info['general'];
             ❓ Tulis Pertanyaan Spesifik Kamu:
         </label>
         <textarea 
-            name="user_question" 
+            name="q" 
             id="user_question" 
             rows="4" 
             required 
-            placeholder="<?= $info['placeholder']; ?>" 
+            placeholder="<?= htmlspecialchars($info['placeholder']); ?>" 
             class="w-full p-4 rounded-2xl border-2 border-pastel-lilac focus:outline-none focus:border-pastel-pink text-sm text-pastel-dark font-semibold placeholder:text-pastel-dark/40 bg-pastel-bunny/30 mb-6"
         ></textarea>
 
