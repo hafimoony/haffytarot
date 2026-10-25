@@ -1,13 +1,16 @@
 <?php
-$host = "localhost";
-$user = "root";
-$pass = "namgildaero";
-$dbname = "tarot_db";
+$host = 'db.foeddzgzazjmqardsqzq.supabase.co';
+$port = '5432';
+$db   = 'postgres';
+$user = 'postgres';
+$pass = 'namgildaero27';
 
-$conn = new mysqli($host, $user, $pass, $dbname);
+$dsn = "pgsql:host=$host;port=$port;dbname=$db;user=$user;password=$pass";
 
-if ($conn->connect_error) {
-    die("Koneksi database gagal: " . $conn->connect_error);
+try {
+    $conn = new PDO($dsn);
+    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Koneksi Supabase gagal: " . $e->getMessage());
 }
-$conn->set_charset("utf8mb4");
 ?>

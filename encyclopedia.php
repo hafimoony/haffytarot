@@ -13,15 +13,9 @@ if ($arcana_filter === 'major') {
 }
 $sql .= " ORDER BY id ASC";
 
-$result = $conn->query($sql);
-$cards = [];
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $cards[] = $row;
-    }
-}
+$stmt = $conn->query($sql);
+$cards = $stmt->fetchAll();
 
-// Pemetaan Numerologi & Simbolisme Sederhana untuk Ensiklopedia
 function getCardNumerology($code) {
     preg_match('/\d+/', $code, $matches);
     $num = isset($matches[0]) ? intval($matches[0]) : 0;
@@ -52,7 +46,6 @@ function getCardNumerology($code) {
     <p class="text-xs md:text-sm font-semibold opacity-80 mt-1">Pelajari elemen, numerologi, dan interpretasi makna setiap kartu secara eksplisit</p>
 </div>
 
-<!-- Tab Filter -->
 <div class="flex justify-center gap-2 mb-8">
     <a href="encyclopedia.php?arcana=all" class="px-4 py-1.5 rounded-full text-xs font-bold border transition font-heading <?= $arcana_filter === 'all' ? 'bg-pastel-pink text-pastel-dark border-pastel-lilac' : 'bg-white/80 border-gray-300'; ?>">
         Semua (78)
@@ -65,7 +58,6 @@ function getCardNumerology($code) {
     </a>
 </div>
 
-<!-- Grid Kartu Ensiklopedia -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <?php foreach ($cards as $c): 
         $clean_name = str_replace(['**', '*'], '', preg_replace('/^[0-9IVXLCDM]+\s*-\s*/', '', $c['name']));
@@ -87,13 +79,11 @@ function getCardNumerology($code) {
                     </span>
                 </div>
 
-                <!-- Detail Numerologi & Simbolisme -->
                 <div class="bg-pastel-bunny/30 p-3 rounded-2xl mb-3 border border-pastel-lilac/40 text-xs">
                     <span class="font-bold block mb-0.5 font-heading">🔢 Numerologi & Simbolisme:</span>
                     <p class="opacity-90 leading-relaxed font-semibold"><?= htmlspecialchars($numerology); ?></p>
                 </div>
 
-                <!-- Makna Tegak & Terbalik -->
                 <div class="space-y-2 text-xs font-semibold">
                     <div class="p-2.5 rounded-xl bg-pastel-mint/30 border border-pastel-mint">
                         <span class="font-bold text-emerald-800 block mb-0.5">☀️ Interpretasi Tegak (Upright):</span>

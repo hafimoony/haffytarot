@@ -59,14 +59,12 @@ $selected_ids = explode(',', $selected_ids_str);
 $ids_clean = array_map('intval', $selected_ids);
 $ids_imploded = implode(',', $ids_clean);
 
-$sql = "SELECT * FROM cards WHERE id IN ($ids_imploded)";
-$result = $conn->query($sql);
+$stmt = $conn->query("SELECT * FROM cards WHERE id IN ($ids_imploded)");
+$fetched_raw = $stmt->fetchAll();
 
 $fetched_cards = [];
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $fetched_cards[$row['id']] = $row;
-    }
+foreach ($fetched_raw as $row) {
+    $fetched_cards[$row['id']] = $row;
 }
 
 $drawn_cards = [];

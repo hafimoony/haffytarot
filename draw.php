@@ -22,20 +22,18 @@ $spread_configs = [
 $config = $spread_configs[$spread] ?? $spread_configs['daily'];
 $required_count = $config['count'];
 
-$sql = "SELECT * FROM cards ORDER BY RAND()";
-$result = $conn->query($sql);
+// Query PostgreSQL menggunakan RANDOM() dan PDO fetchAll()
+$stmt = $conn->query("SELECT * FROM cards ORDER BY RANDOM()");
+$raw_cards = $stmt->fetchAll();
 
 $all_cards = [];
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $row['is_reversed'] = (rand(0, 1) === 1);
-        $all_cards[] = $row;
-    }
+foreach ($raw_cards as $row) {
+    $row['is_reversed'] = (rand(0, 1) === 1);
+    $all_cards[] = $row;
 }
 ?>
 
 <style>
-/* Animasi Shuffle Kartu */
 @keyframes shuffleLeft {
     0%, 100% { transform: translateX(0) rotate(0deg); }
     50% { transform: translateX(-60px) rotate(-15deg); }
@@ -49,7 +47,6 @@ if ($result) {
 .animate-shuffle-2 { animation: shuffleRight 0.8s ease-in-out infinite 0.2s; }
 </style>
 
-<!-- Overlay Animasi Pengocokan Kartu -->
 <div id="shuffle-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col items-center justify-center">
     <div class="relative w-32 h-48 mb-6">
         <div class="absolute inset-0 bg-white rounded-2xl cute-card-border flex items-center justify-center animate-shuffle-1 shadow-lg">
@@ -74,7 +71,6 @@ if ($result) {
     </p>
 </div>
 
-<!-- Meja Tebaran 78 Kartu -->
 <form id="tarot-form" action="process_draw.php" method="POST" class="max-w-6xl mx-auto my-6">
     <input type="hidden" name="selected_card_ids" id="selected_card_ids" value="">
 
@@ -112,7 +108,6 @@ if ($result) {
 </form>
 
 <script>
-// Hilangkan overlay pengocokan setelah 2.2 detik
 setTimeout(() => {
     const overlay = document.getElementById('shuffle-overlay');
     if (overlay) {

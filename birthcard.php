@@ -8,8 +8,7 @@ $calculated_card = null;
 $birth_number = null;
 
 if (!empty($birthdate)) {
-    // Algoritma Numerologi Birth Card (DD + MM + YYYY)
-    $date_parts = explode('-', $birthdate); // Format YYYY-MM-DD
+    $date_parts = explode('-', $birthdate);
     if (count($date_parts) === 3) {
         $year = intval($date_parts[0]);
         $month = intval($date_parts[1]);
@@ -17,24 +16,17 @@ if (!empty($birthdate)) {
 
         $sum = $day + $month + $year;
         
-        // Reduksi hingga <= 22 (Range 0-21 Major Arcana)
         while ($sum > 21) {
             $digits = str_split((string)$sum);
             $sum = array_sum(array_map('intval', $digits));
         }
         
         $birth_number = $sum;
-        
-        // Format pencarian kode Major Arcana (misal: major_01, major_02)
         $code_search = sprintf("major_%02d", $birth_number);
         
-        $stmt = $conn->prepare("SELECT * FROM cards WHERE code = ? LIMIT 1");
-        $stmt->bind_param("s", $code_search);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        if ($res && $res->num_rows > 0) {
-            $calculated_card = $res->fetch_assoc();
-        }
+        $stmt = $conn->prepare("SELECT * FROM cards WHERE code = :code LIMIT 1");
+        $stmt->execute([':code' => $code_search]);
+        $calculated_card = $stmt->fetch();
     }
 }
 ?>
@@ -48,7 +40,6 @@ if (!empty($birthdate)) {
         Hitung kartu Major Arcana yang menaungi potensi kepribadian dan takdir batin kamu berdasarkan tanggal lahir.
     </p>
 
-    <!-- Form Input Tanggal Lahir -->
     <form action="birthcard.php" method="POST" class="bg-white/90 p-6 rounded-3xl cute-card-border shadow-md mt-6 text-left theme-card">
         <label for="birthdate" class="block text-xs font-bold mb-2 font-heading">
             📅 Pilih Tanggal Lahir Kamu:
@@ -66,7 +57,6 @@ if (!empty($birthdate)) {
         </button>
     </form>
 
-    <!-- Hasil Perhitungan Birth Card -->
     <?php if ($calculated_card): 
         $clean_name = str_replace(['**', '*'], '', preg_replace('/^[0-9IVXLCDM]+\s*-\s*/', '', $calculated_card['name']));
     ?>
