@@ -1,18 +1,93 @@
 <?php
-session_start();
+require_once 'config/db.php';
 
-if (!isset($_SESSION['current_reading'])) {
+// Ambil data langsung dari URL GET (Aman dari masalah serverless Vercel)
+$spread_key = $_GET['spread'] ?? 'daily';
+$category = $_GET['category'] ?? 'general';
+$user_question = $_GET['q'] ?? 'Apa pesan untukku saat ini?';
+$selected_ids_str = $_GET['cards'] ?? '';
+$rev_str = $_GET['rev'] ?? '';
+
+if (empty($selected_ids_str)) {
     header('Location: index.php');
     exit;
 }
 
-include 'includes/header.php';
+$selected_ids = explode(',', $selected_ids_str);
+$rev_flags = explode(',', $rev_str);
 
-$reading = $_SESSION['current_reading'];
-$cards = $reading['cards'];
-$spread_key = $reading['spread_key'];
-$category = $reading['category'] ?? 'general';
-$user_question = $reading['user_question'];
+$ids_clean = array_map('intval', $selected_ids);
+$ids_imploded = implode(',', $ids_clean);
+
+// Ambil data kartu dari PostgreSQL Supabase
+$stmt = $conn->query("SELECT * FROM cards WHERE id IN ($ids_imploded)");
+$fetched_raw = $stmt->fetchAll();
+
+$fetched_cards = [];
+foreach ($fetched_raw as $row) {
+    $fetched_cards[$row['id']] = $row;
+}
+
+// Konfigurasi Spread & Posisi
+$spread_configs = [
+    'daily' => [
+        'name' => 'Spill Energi (Single Card)',
+        'positions' => ['Jawaban Utama Kartu']
+    ],
+    'ppf' => [
+        'name' => 'Past, Present, Future Spread',
+        'positions' => ['Penyebab Masa Lalu', 'Kondisi Saat Ini', 'Potensi Masa Depan']
+    ],
+    'yesno' => [
+        'name' => 'Yes or No Oracle',
+        'positions' => ['Pertimbangan Pertama', 'Pertimbangan Kedua', 'Pertimbangan Ketiga']
+    ],
+    'horseshoe' => [
+        'name' => 'Horseshoe Spread',
+        'positions' => [
+            '1. Masa Lalu',
+            '2. Masa Kini',
+            '3. Masa Depan',
+            '4. Sikap / Tantangan',
+            '5. Pengaruh Lingkungan',
+            '6. Saran Tindakan',
+            '7. Hasil Akhir'
+        ]
+    ],
+    'celtic' => [
+        'name' => 'The Celtic Cross Spread',
+        'positions' => [
+            'Situasi Utama', 'Hambatan Langsung', 'Tujuan Sadar', 'Akar Bawah Sadar',
+            'Pengaruh Lalu', 'Yang Akan Datang', 'Perasaan Diri', 'Pengaruh Lingkungan',
+            'Harapan dan Ketakutan', 'Hasil Akhir'
+        ]
+    ]
+];
+
+$spread_info = $spread_configs[$spread_key] ?? $spread_configs['daily'];
+
+// Susun array kartu lengkap dengan status orientasinya
+$cards = [];
+foreach ($ids_clean as $index => $id) {
+    if (isset($fetched_cards[$id])) {
+        $is_rev = isset($rev_flags[$index]) ? (int)$rev_flags[$index] === 1 : false;
+        $cards[] = [
+            'position_label' => $spread_info['positions'][$index] ?? "Posisi " . ($index + 1),
+            'card_data' => $fetched_cards[$id],
+            'is_reversed' => $is_rev
+        ];
+    }
+}
+
+$total_cards = count($cards);
+$category_labels = [
+    'love' => 'Percintaan 💖',
+    'career' => 'Karir & Keuangan 💼',
+    'life' => 'Kehidupan 🌱',
+    'general' => 'General 🔮'
+];
+
+include 'includes/header.php';
 
 function renderCuteSymbol($suit, $arcana) {
     if ($arcana === 'major') {
@@ -187,14 +262,6 @@ function generateSmartInterpretation($question, $category, $cards, $spread_key) 
 
     return "Gunakan pesan kartu sebagai panduan positif untuk melangkah.";
 }
-
-$total_cards = count($cards);
-$category_labels = [
-    'love' => 'Percintaan 💖',
-    'career' => 'Karir & Keuangan 💼',
-    'life' => 'Kehidupan 🌱',
-    'general' => 'General 🔮'
-];
 ?>
 
 <style>
@@ -241,7 +308,7 @@ $category_labels = [
         </h2>
     </div>
     <span class="text-xs font-bold text-pastel-dark/70">
-        Metode: <?= htmlspecialchars($reading['spread_name']); ?>
+        Metode: <?= htmlspecialchars($spread_info['name']); ?>
     </span>
 </div>
 
