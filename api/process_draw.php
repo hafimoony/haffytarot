@@ -12,12 +12,21 @@ if (empty($selected_ids_str)) {
     exit;
 }
 
-// Kirim data langsung via URL GET agar aman dari masalah serverless Vercel
+// Tentukan posisi tegak/terbalik secara konsisten untuk setiap kartu yang dipilih
+$selected_ids = explode(',', $selected_ids_str);
+$rev_flags = [];
+foreach ($selected_ids as $id) {
+    $rev_flags[] = (rand(0, 1) === 1) ? 1 : 0;
+}
+$rev_str = implode(',', $rev_flags);
+
+// Kirim data melalui parameter URL GET untuk menghindari masalah sesi hilang di Vercel Serverless
 $params = http_build_query([
     'spread' => $spread,
     'category' => $category,
     'q' => $user_question,
-    'cards' => $selected_ids_str
+    'cards' => $selected_ids_str,
+    'rev' => $rev_str
 ]);
 
 header("Location: reading.php?$params");
